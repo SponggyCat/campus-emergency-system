@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EarthQuakie - Real-time Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; text-align: center; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #e63946; margin-bottom: 5px; }
+        .status { font-size: 0.9em; color: #666; margin-bottom: 20px; }
+        canvas { max-height: 400px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌍 EarthQuakie</h1>
+    <div class="status" id="status">Waiting for data...</div>
+    <canvas id="intensityChart"></canvas>
+</div>
+
+<script>
+    // 1. YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+        databaseURL: "https://earthquakie-8e6a7-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // 2. SETUP CHART.JS
+    const ctx = document.getElementById('intensityChart').getContext('2d');
+    const intensityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [], // Time stamps
+            datasets: [{
+                label: 'Vibration Intensity',
+                data: [],
+                borderColor: '#e63946',
+                backgroundColor: 'rgba(230, 57, 70, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true, suggestedMax: 50 }
+            }
+        }
+    });
+
+    // 3. LISTEN FOR UPDATES
+    const vibrationRef = database.ref('/vibration/last_intensity');
+    vibrationRef.on('value', (snapshot) => {
+        const value = snapshot.val();
+        const now = new Date().toLocaleTimeString();
+
+        document.getElementById('status').innerText = "Last detected: " + value + " at " + now;
+
+        // Add new data to chart
+        intensityChart.data.labels.push(now);
+        intensityChart.data.datasets[0].data.push(value);
+
+        // Keep only the last 15 readings so the graph doesn't get too crowded
+        if (intensityChart.data.labels.length > 15) {
+            intensityChart.data.labels.shift();
+            intensityChart.data.datasets[0].data.shift();
+        }
+
+        intensityChart.update();
+    });
+</script>
+
+</body>
+</html>
