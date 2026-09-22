@@ -28,6 +28,3 @@ This project originally used Firebase to sync data between devices. It was switc
 
 ## Why this project
 Originally an individual earthquake sensor project, then expanded by course assignment to integrate flood and fire sensors built by classmates into one unified, offline-capable emergency monitoring system.
-
-## Why this project
-Originally an individual earthquake sensor project, then expanded by course assignment to integrate flood and fire sensors built by classmates into one unified, offline-capable emergency monitoring system.
